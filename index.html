@@ -1,74 +1,172 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dhaka Midnight Countdown</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Dhaka Midnight — Premium Countdown</title>
+
+  <!-- Premium variable font (CDN) -->
   <style>
-    :root { color-scheme: dark; }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; background: #000; }
-    body {
-      display: grid;
-      place-items: center;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
-      color: #fff;
+    /* inter-tight variable via Fontsource CDN */ /* [web:22] */
+    @font-face {
+      font-family: "Inter Tight Variable";
+      font-style: normal;
+      font-display: swap;
+      font-weight: 100 900;
+      src: url(https://cdn.jsdelivr.net/fontsource/fonts/inter-tight:vf@latest/latin-wght-normal.woff2) format("woff2");
     }
-    .wrap {
-      text-align: center;
-      padding: 24px;
+
+    :root { color-scheme: dark; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { width:100%; height:100%; overflow:hidden; background:#000; }
+
+    /* WebGL canvas */
+    #c { position:fixed; inset:0; width:100%; height:100%; display:block; }
+
+    /* Premium overlay */
+    #ui {
+      position: fixed; inset: 0;
+      display: grid; place-items: center;
+      pointer-events:none;
+      z-index: 5;
+      padding: 6vmin;
+    }
+    .card {
+      width: min(960px, 92vw);
+      border-radius: 28px;
+      padding: clamp(20px, 4.2vmin, 44px);
+      background:
+        radial-gradient(1200px 500px at 20% 0%, rgba(120,190,255,.18), transparent 55%),
+        radial-gradient(900px 600px at 90% 100%, rgba(160,120,255,.14), transparent 60%),
+        rgba(10, 12, 18, 0.35);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow:
+        0 18px 60px rgba(0,0,0,0.55),
+        inset 0 1px 0 rgba(255,255,255,0.06);
+      backdrop-filter: blur(16px) saturate(1.1);
+      -webkit-backdrop-filter: blur(16px) saturate(1.1);
     }
     h1 {
-      font-size: clamp(14px, 2.2vw, 18px);
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      opacity: 0.85;
+      font-family: "Inter Tight Variable", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+      font-size: clamp(14px, 1.8vw, 18px);
+      opacity: 0.86;
       margin-bottom: 18px;
     }
+
     .time {
-      font-size: clamp(56px, 10vw, 140px);
+      font-family: "Inter Tight Variable", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       font-weight: 800;
-      letter-spacing: 0.06em;
-      line-height: 1;
-    }
-    .time span {
-      display: inline-block;
-      min-width: 2ch;
-      text-align: center;
-    }
-    .sub {
-      margin-top: 14px;
-      font-size: 12px;
-      opacity: 0.6;
+      font-variant-numeric: tabular-nums;
+      font-size: clamp(54px, 9.5vw, 132px);
       letter-spacing: 0.02em;
+      line-height: 1.02;
+      color: #f4f8ff;
+      text-shadow:
+        0 0 18px rgba(120,190,255,.22),
+        0 0 44px rgba(120,190,255,.12);
+    }
+    .time span { display:inline-block; min-width: 2ch; text-align:center; }
+
+    .meta {
+      margin-top: 14px;
+      display:flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
+      font-size: 12px;
+      opacity: 0.72;
+    }
+    .pill {
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.09);
+      white-space: nowrap;
+    }
+
+    /* Vignette + grain (cheap, premium feel) */
+    #fx {
+      position: fixed; inset: 0;
+      z-index: 3;
+      pointer-events:none;
+      background:
+        radial-gradient(1200px 700px at 50% 35%, transparent 40%, rgba(0,0,0,0.55) 78%, rgba(0,0,0,0.80) 100%),
+        linear-gradient(120deg, rgba(120,190,255,0.06), rgba(160,120,255,0.05));
+      mix-blend-mode: screen;
+      opacity: 1;
+    }
+    #grain {
+      position: fixed; inset: -20%;
+      z-index: 4;
+      pointer-events:none;
+      opacity: 0.10;
+      background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+      background-size: 240px 240px;
+      animation: drift 10s linear infinite;
+      mix-blend-mode: overlay;
+    }
+    @keyframes drift {
+      from { transform: translate3d(-2%, -2%, 0) rotate(0.001deg); }
+      to   { transform: translate3d( 2%,  2%, 0) rotate(0.001deg); }
+    }
+
+    /* Safety: if user prefers reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      #grain { animation: none; }
     }
   </style>
+
+  <!-- Three.js importmap (CDN) -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.158.0/examples/jsm/"
+      }
+    }
+  </script>
 </head>
+
 <body>
-  <div class="wrap">
-    <h1>Time remaining till tomorrow (Asia/Dhaka)</h1>
-    <div class="time" aria-label="Countdown timer">
-      <span id="hh">00</span>:<span id="mm">00</span>:<span id="ss">00</span>
+  <canvas id="c"></canvas>
+  <div id="fx"></div>
+  <div id="grain"></div>
+
+  <div id="ui">
+    <div class="card" role="group" aria-label="Dhaka midnight countdown">
+      <h1>Time remaining till tomorrow (Asia/Dhaka)</h1>
+      <div class="time" aria-label="Countdown">
+        <span id="hh">00</span>:<span id="mm">00</span>:<span id="ss">00</span>
+      </div>
+      <div class="meta">
+        <div class="pill" id="dateLine">Dhaka date: --</div>
+        <div class="pill" id="quality">Quality: Auto</div>
+      </div>
     </div>
-    <div class="sub" id="dateLine"></div>
   </div>
 
-  <script>
-    // Minimal version of your original time.js logic (Asia/Dhaka midnight countdown). [file:1]
+  <script type="module">
+    import * as THREE from "three";
+    import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+    import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+    import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js"; // docs: [web:10]
+    import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
+
+    // -----------------------------
+    // Dhaka midnight countdown logic (from your time.js approach). [file:1]
+    // -----------------------------
     const TZ = "Asia/Dhaka";
 
     function getDhakaParts(date = new Date()) {
       const parts = new Intl.DateTimeFormat("en-GB", {
         timeZone: TZ,
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
+        year: "numeric", month: "2-digit", day: "2-digit",
+        hour: "2-digit", minute: "2-digit", second: "2-digit",
         hour12: false
       }).formatToParts(date);
-
       const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
       return {
         year: parseInt(map.year, 10),
@@ -93,16 +191,12 @@
       const todayUtc = Date.UTC(p.year, p.month - 1, p.day);
       const tomorrowUtc = todayUtc + 24 * 60 * 60 * 1000;
       const tomorrow = new Date(tomorrowUtc);
-
       const nextMidnightDhaka = {
         year: tomorrow.getUTCFullYear(),
         month: tomorrow.getUTCMonth() + 1,
         day: tomorrow.getUTCDate(),
-        hour: 0,
-        minute: 0,
-        second: 0
+        hour: 0, minute: 0, second: 0
       };
-
       const nextMidnightUtcMs = dhakaLocalToUtcMs(nextMidnightDhaka);
       return nextMidnightUtcMs - now.getTime();
     }
@@ -112,33 +206,246 @@
       const h = Math.floor(totalSeconds / 3600);
       const m = Math.floor((totalSeconds % 3600) / 60);
       const s = totalSeconds % 60;
-      return {
-        h: String(h).padStart(2, "0"),
-        m: String(m).padStart(2, "0"),
-        s: String(s).padStart(2, "0")
-      };
+      return { h: String(h).padStart(2,"0"), m: String(m).padStart(2,"0"), s: String(s).padStart(2,"0") };
     }
 
     const hh = document.getElementById("hh");
     const mm = document.getElementById("mm");
     const ss = document.getElementById("ss");
     const dateLine = document.getElementById("dateLine");
+    const qualityEl = document.getElementById("quality");
 
-    function render() {
+    // -----------------------------
+    // Premium 3D background (safe)
+    // -----------------------------
+    const canvas = document.getElementById("c");
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: "high-performance" });
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+
+    // Auto quality knobs
+    const isMobile = matchMedia("(pointer: coarse)").matches;
+    const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const Q = {
+      dpr: isMobile ? 1.25 : 1.6,
+      bloom: !reduceMotion,
+      bloomStrength: isMobile ? 0.85 : 1.1,
+      bloomRadius: 0.55,
+      bloomThreshold: 0.18,
+      bloomResScale: isMobile ? 0.5 : 0.6, // lower = faster (important). [web:10]
+      stars: isMobile ? 900 : 1800
+    };
+
+    function applyRendererQuality() {
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, Q.dpr));
+      renderer.setSize(innerWidth, innerHeight, false);
+    }
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x000008, 6, 24);
+
+    const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 60);
+    camera.position.set(0, 0.15, 7.2);
+
+    // Lights
+    scene.add(new THREE.AmbientLight(0xbcd6ff, 0.18));
+    const key = new THREE.DirectionalLight(0xffffff, 1.2);
+    key.position.set(3, 5, 2);
+    scene.add(key);
+    const rim = new THREE.DirectionalLight(0x8cbcff, 0.9);
+    rim.position.set(-4, 1, -2);
+    scene.add(rim);
+
+    // A premium "crystal core" (cheap geometry, expensive look)
+    const coreGeo = new THREE.IcosahedronGeometry(1.35, 4);
+    const coreMat = new THREE.MeshPhysicalMaterial({
+      color: 0x7fb8ff,
+      roughness: 0.18,
+      metalness: 0.0,
+      transmission: 1.0,
+      thickness: 0.9,
+      ior: 1.4,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.12,
+      emissive: new THREE.Color(0x0a1020),
+      emissiveIntensity: 0.35
+    });
+    const core = new THREE.Mesh(coreGeo, coreMat);
+    scene.add(core);
+
+    // Soft glow rings
+    const ringGeo = new THREE.TorusGeometry(1.9, 0.02, 16, 220);
+    const ringMat = new THREE.MeshStandardMaterial({
+      color: 0x9fe7ff,
+      emissive: 0x4aa3ff,
+      emissiveIntensity: 1.8,
+      roughness: 0.35,
+      metalness: 0.2
+    });
+    const ring1 = new THREE.Mesh(ringGeo, ringMat);
+    ring1.rotation.x = Math.PI * 0.55;
+    scene.add(ring1);
+
+    const ring2 = new THREE.Mesh(ringGeo, ringMat);
+    ring2.rotation.x = Math.PI * 0.12;
+    ring2.rotation.y = Math.PI * 0.25;
+    ring2.scale.setScalar(1.12);
+    scene.add(ring2);
+
+    // Starfield (Points, no per-particle physics)
+    const starPositions = new Float32Array(Q.stars * 3);
+    for (let i = 0; i < Q.stars; i++) {
+      const r = 10 + Math.random() * 18;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(THREE.MathUtils.randFloatSpread(2));
+      const x = r * Math.sin(phi) * Math.cos(theta);
+      const y = r * Math.cos(phi) * 0.7;
+      const z = r * Math.sin(phi) * Math.sin(theta);
+      starPositions[i*3+0] = x;
+      starPositions[i*3+1] = y;
+      starPositions[i*3+2] = z;
+    }
+    const starsGeo = new THREE.BufferGeometry();
+    starsGeo.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
+    const starsMat = new THREE.PointsMaterial({
+      color: 0xaed6ff,
+      size: isMobile ? 0.018 : 0.014,
+      transparent: true,
+      opacity: 0.85,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+    const stars = new THREE.Points(starsGeo, starsMat);
+    scene.add(stars);
+
+    // Postprocessing: Bloom + subtle vignette shader
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+
+    let bloomPass = null;
+    if (Q.bloom) {
+      const res = new THREE.Vector2(
+        Math.floor(innerWidth * Q.bloomResScale),
+        Math.floor(innerHeight * Q.bloomResScale)
+      );
+      bloomPass = new UnrealBloomPass(res, Q.bloomStrength, Q.bloomRadius, Q.bloomThreshold);
+      composer.addPass(bloomPass);
+    }
+
+    const VignetteShader = {
+      uniforms: {
+        tDiffuse: { value: null },
+        offset: { value: 1.05 },
+        darkness: { value: 1.15 }
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+        }`,
+      fragmentShader: `
+        uniform sampler2D tDiffuse;
+        uniform float offset;
+        uniform float darkness;
+        varying vec2 vUv;
+        void main() {
+          vec4 c = texture2D(tDiffuse, vUv);
+          vec2 uv = (vUv - 0.5) * offset;
+          float v = smoothstep(0.85, 0.25, dot(uv, uv));
+          c.rgb *= mix(darkness, 1.0, v);
+          gl_FragColor = c;
+        }`
+    };
+    const vignette = new ShaderPass(VignetteShader);
+    composer.addPass(vignette);
+
+    // Resize
+    function onResize() {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      applyRendererQuality();
+      composer.setSize(innerWidth, innerHeight);
+      if (bloomPass) {
+        bloomPass.resolution.set(
+          Math.floor(innerWidth * Q.bloomResScale),
+          Math.floor(innerHeight * Q.bloomResScale)
+        );
+      }
+    }
+    addEventListener("resize", onResize);
+    applyRendererQuality();
+    composer.setSize(innerWidth, innerHeight);
+
+    // -----------------------------
+    // Stability: auto quality drop if FPS is low
+    // -----------------------------
+    let qualityMode = "Auto";
+    let lowFpsTimer = 0;
+    let lastT = performance.now();
+
+    function setQualityBadge(extra = "") {
+      qualityEl.textContent = `Quality: ${qualityMode}${extra ? " · " + extra : ""}`;
+    }
+    setQualityBadge(isMobile ? "Mobile" : "Desktop");
+
+    function dropQuality(reason) {
+      if (qualityMode === "Safe") return;
+      qualityMode = "Safe";
+      Q.dpr = 1.0;
+      Q.bloomResScale = 0.45;
+      if (bloomPass) bloomPass.strength *= 0.7;
+      applyRendererQuality();
+      composer.setSize(innerWidth, innerHeight);
+      setQualityBadge(reason);
+    }
+
+    // -----------------------------
+    // Main loop
+    // -----------------------------
+    function tick() {
       const now = new Date();
-      const left = msUntilNextDhakaMidnight(now);
-      const t = hhmmssFromMs(left);
-
-      hh.textContent = t.h;
-      mm.textContent = t.m;
-      ss.textContent = t.s;
+      const msLeft = msUntilNextDhakaMidnight(now);
+      const t = hhmmssFromMs(msLeft);
+      hh.textContent = t.h; mm.textContent = t.m; ss.textContent = t.s;
 
       const p = getDhakaParts(now);
       dateLine.textContent = `Dhaka date: ${String(p.day).padStart(2,"0")}-${String(p.month).padStart(2,"0")}-${p.year}`;
-    }
 
-    render();
-    setInterval(render, 250); // simple, no visual effects; keeps seconds accurate enough. [file:1]
+      const tt = performance.now() * 0.001;
+
+      // Smooth motion (no heavy particle physics)
+      core.rotation.y = tt * 0.35;
+      core.rotation.x = Math.sin(tt * 0.22) * 0.25;
+      ring1.rotation.z = tt * 0.28;
+      ring2.rotation.z = -tt * 0.22;
+      stars.rotation.y = tt * 0.02;
+
+      // Camera drift
+      camera.position.x = Math.sin(tt * 0.25) * 0.35;
+      camera.position.y = 0.15 + Math.cos(tt * 0.21) * 0.18;
+      camera.lookAt(0, 0, 0);
+
+      // Subtle “near-midnight” intensity
+      const secondsLeft = Math.max(0, Math.floor(msLeft / 1000));
+      const near = Math.max(0, 1 - secondsLeft / 120); // last 2 minutes
+      if (bloomPass) bloomPass.strength = Q.bloomStrength + near * (isMobile ? 0.45 : 0.75);
+
+      composer.render();
+
+      // FPS watchdog
+      const tNow = performance.now();
+      const dt = tNow - lastT;
+      lastT = tNow;
+      const fps = 1000 / Math.max(1, dt);
+      if (fps < (isMobile ? 26 : 40)) lowFpsTimer += dt; else lowFpsTimer = Math.max(0, lowFpsTimer - dt * 0.5);
+      if (lowFpsTimer > 1800) dropQuality("Auto-safe");
+
+      requestAnimationFrame(tick);
+    }
+    tick();
   </script>
 </body>
 </html>
